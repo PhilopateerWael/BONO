@@ -42,7 +42,16 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
         default: false
-    }
+    },
+    lastCheck: {
+        type: Date,
+        required: true,
+        default: () => {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            return date;
+        },
+    },
 });
 
 const User = mongoose.model('User', userSchema);

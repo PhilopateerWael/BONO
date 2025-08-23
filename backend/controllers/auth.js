@@ -14,45 +14,45 @@ const client = new OAuth2Client(
 );
 
 export async function getMe(req, res) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date();
+    yesterday.setHours(0, 0, 0, 0)
+    yesterday.setDate(yesterday.getDate() - 1)
+
     if (req.user) {
-        let atLeastOneHabitDone = false;
-        for (let habit of req.user.habits) {
-            if (habit.doneToday && habit.today.getTime() - today.getTime() <= 24 * 60 * 60 * 1000) {
-                atLeastOneHabitDone = true;
+        if (today.getTime() != req.user.lastCheck.getTime()) {
+            let atLeastOneHabitDone = false;
+            for (let habit of req.user.habits) {
+
+                if (habit?.daysDone[today]?.completed || habit?.daysDone[yesterday]?.completed) {
+                    atLeastOneHabitDone = true;
+                }
+
+                if (!habit?.daysDone[yesterday]?.completed && !habit?.daysDone[today]?.completed) {
+                    habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
+                    habit.currentStreak = 0;
+                }
+
+                let notToday = today.getTime() != habit.today.getTime();
+
+                if (notToday) {
+                    habit.today = today;
+                    await habit.save();
+                }
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            let notToday = today.getTime() != habit.today.getTime();
+            if (!atLeastOneHabitDone) {
+                req.user.longestStreak = Math.max(req.user.longestStreak, req.user.currentStreak);
+                req.user.currentStreak = 0;
+                req.user.doneSomethingToday = false;
+            }
             
-            if (notToday && !habit.doneToday) {
-                habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
-                habit.currentStreak = 0;
-            }
-
-            if (notToday) {
-                habit.doneToday = false;
-                habit.todayAmmount = 0;
-                habit.today = today;
-                await habit.save();
-            }
-
+            req.user.lastCheck = today;
+            await req.user.save();
         }
 
-        if (!atLeastOneHabitDone) {
-            req.user.longestStreak = Math.max(req.user.longestStreak, req.user.currentStreak);
-            req.user.currentStreak = 0;
-            req.user.doneSomethingToday = false;
-        }
-
-        if (atLeastOneHabitDone && !req.user.doneSomethingToday) {
-            req.user.doneSomethingToday = true;
-            req.user.currentStreak++;
-            req.user.longestStreak = Math.max(req.user.longestStreak, req.user.currentStreak);
-        }
-
-        await req.user.save();
         return res.status(200).json(req.user);
     }
     return res.status(401).json({ message: "Unauthorized" });
