@@ -93,7 +93,7 @@ export async function Google(req, res) {
                 secure: true,
             });
 
-            return res.json(user)
+            return res.json(user.toObject())
         }
 
         user = new User({
@@ -112,7 +112,7 @@ export async function Google(req, res) {
             secure: true,
         });
 
-        res.json(user);
+        return res.json(user.toObject());
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }

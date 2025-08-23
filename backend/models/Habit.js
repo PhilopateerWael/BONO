@@ -7,7 +7,7 @@ const habitSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
+        required: false,
         default: ""
     },
     daysDone: {
@@ -26,22 +26,12 @@ const habitSchema = new mongoose.Schema({
     },
     unit: {
         type: String,
-        required: true
-    },
-    isTimeBased: {
-        type: Boolean,
         required: true,
-        default: false
     },
-    isTickBased: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
-    isCountBased: {
-        type: Boolean,
-        required: true,
-        default: false
+    habitType : {
+        type : String,
+        required : true,
+        enum : ['time' , 'count' , 'check']
     },
     weeklyGoal: {
         type: Number,
@@ -77,6 +67,15 @@ const habitSchema = new mongoose.Schema({
         required: true,
         default: 0
     },
+    oldestDay : {
+        type: Date,
+        required: true,
+        default: () => {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            return date;
+        },
+    }
 });
 
 const Habit = mongoose.model("Habit", habitSchema);

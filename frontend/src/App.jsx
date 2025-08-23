@@ -3,7 +3,7 @@ import { UserContextProvider, useUserContext } from './context/authContext';
 import { useEffect } from 'react';
 import axios from 'axios';
 import Login from './pages/Login';
-
+import Main from './pages/Main';
 axios.defaults.withCredentials = true;
 
 function WrapApp() {
@@ -22,14 +22,14 @@ function WrapApp() {
         fetchUser();
     }, []);
 
-    if(state.user == "LOADING"){
+    if (state.user == "LOADING") {
         return "LOADING"
     }
 
     return (
         <div className='overflow-hidden'>
             <Routes>
-                <Route path="/" element={state.user ? "WELCOME" : <Login />} />
+                <Route path="/" element={state.user ? <Main /> : <Login />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </div>

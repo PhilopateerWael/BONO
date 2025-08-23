@@ -2,12 +2,21 @@ import Habit from "../models/Habit.js";
 import Record from "../models/Record.js";
 
 async function createHabit(req, res) {
-    const { name, description, goal, unit, isTimeBased, isTickBased, isCountBased, weeklyGoal } = req.body;
-    const habit = await Habit.create({ name, description, goal, unit, isTimeBased, isTickBased, isCountBased, weeklyGoal });
-    req.user.habits.push(habit._id);
-    await req.user.save();
-
-    res.status(201).json(habit);
+    try{
+        let { name, description, goal, unit, habitType, weeklyGoal } = req.body;
+        
+        if(!goal) goal = 1
+        if(!unit) unit = "X"
+    
+        const habit = await Habit.create({ name, description, goal, unit, habitType, weeklyGoal });
+        req.user.habits.push(habit._id);
+    
+        await req.user.save();
+    
+        res.status(201).json(habit);
+    }catch{
+        res.status(500).end("SERVER ERROR")
+    }
 }
 
 async function doHabit(req, res) {
@@ -24,9 +33,10 @@ async function doHabit(req, res) {
     if (habit.today.getTime() !== today.getTime()) {
         habit.today = today;
         habit.todayAmmount = 0;
+        habit.doneToday = false;
     }
 
-    if (habit.isCountBased || habit.isTimeBased) {
+    if (habit.habitType == "count" || habit.habitType == "time") {
         const record = await Record.create({
             date: habit.today,
             ammount,
@@ -39,24 +49,36 @@ async function doHabit(req, res) {
         if (habit.todayAmmount >= habit.goal && !habit.doneToday) {
             habit.currentStreak++;
             habit.longestStreak = Math.max(habit.currentStreak, habit.longestStreak);
-            habit.daysDone.push(today);
+            habit.doneToday = true;
+            habit.daysDone.push(new Date());
+
+            if (!user.doneSomethingToday) {
+                user.currentStreak++;
+                user.doneSomethingToday = true;
+            }
         }
 
     } else if (habit.isTickBased) {
-        const record = await Record.create({
-            date: habit.today,
-            ammount: 1,
-            habitId
-        });
 
         if (!habit.doneToday) {
+            const record = await Record.create({
+                date: habit.today,
+                ammount: 1,
+                habitId
+            });
+
             habit.currentStreak++;
             habit.longestStreak = Math.max(habit.currentStreak, habit.longestStreak);
             habit.doneToday = true;
+            habit.daysDone.push(new Date());
+            if (!user.doneSomethingToday) {
+                user.currentStreak++;
+                user.doneSomethingToday = true;
+            }
+            
+            req.user.records.push(record);
         }
-        
-        req.user.records.push(record);
-        habit.daysDone.push(today);
+
     } else {
         return res.status(400).json({ message: "Invalid habit type" });
     }
