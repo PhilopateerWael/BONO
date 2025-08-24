@@ -1,6 +1,13 @@
 import Habit from "../models/Habit.js";
 import Record from "../models/Record.js";
 
+function keyForDate(d = new Date()) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 async function createHabit(req, res) {
     try {
         let { name, description, goal, unit, habitType, weeklyGoal } = req.body;
@@ -20,7 +27,7 @@ async function createHabit(req, res) {
 }
 
 async function doHabit(req, res) {
-    const { habitId, ammount } = req.body;
+    let { habitId, ammount } = req.body;
     if (!ammount) ammount = 1;
 
     const habit = req.user.habits.find(habit => habit._id.toString() === habitId);
@@ -32,15 +39,15 @@ async function doHabit(req, res) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (!habit.daysDone[today]) {
-        habit.daysDone[today] = {
+    if (!habit.daysDone[keyForDate(today)]) {
+        habit.daysDone[keyForDate(today)] = {
             ammount: 0,
             currentGoal: habit.goal,
             completed: false
         }
     }
 
-    const todaysLog = habit.daysDone[today];
+    const todaysLog = habit.daysDone[keyForDate(today)];
 
     const record = await Record.create({
         date: new Date(),
@@ -49,7 +56,8 @@ async function doHabit(req, res) {
     });
 
     todaysLog.ammount += ammount;
-
+    habit.totalAmmount += ammount;
+    
     if (todaysLog.ammount >= todaysLog.currentGoal && !todaysLog.completed) {
         todaysLog.completed = true;
         habit.currentStreak++;
@@ -57,12 +65,14 @@ async function doHabit(req, res) {
         habit.totalCompletions++;
 
         if (!req.user.doneSomethingToday) {
-            user.currentStreak++;
-            user.doneSomethingToday = true;
+            req.user.currentStreak++;
+            req.user.doneSomethingToday = true;
         }
     }
+    
+    habit.daysDone[keyForDate(today)] = todaysLog
 
-    req.user.records.push(record);
+    req.user.records.push(record._id);
     await habit.save();
     await req.user.save();
 
@@ -82,6 +92,10 @@ async function editHabit(req, res) {
     if (isDelete) {
         await Habit.deleteOne({ _id: habitId });
         await Record.deleteMany({ habitId })
+
+        req.user.habits = req.user.habits.filter(id => id.toString() !== habitId);
+        await req.user.save();
+
         return res.status(200).end();
     }
 
@@ -91,8 +105,11 @@ async function editHabit(req, res) {
     habit.unit = unit;
     habit.weeklyGoal = weeklyGoal;
 
-    if (habit.daysDone[today]) {
-        habit.daysDone[today].currentGoal = goal
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (habit.daysDone[keyForDate(today)]) {
+        habit.daysDone[keyForDate(today)].currentGoal = goal
     }
 
     await habit.save();

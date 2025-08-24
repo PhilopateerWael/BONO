@@ -11,7 +11,7 @@ const Main = () => {
         }
     }
     return (
-        <div className="flex text-white">
+        <div className="flex text-white relative h-screen overflow-y-auto">
             <Sidebar setTab={setTab} tab={tab} />
             <main className="flex-1 bg-gray-900">
                 {renderSection()}

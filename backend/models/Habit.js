@@ -64,6 +64,10 @@ const habitSchema = new mongoose.Schema({
             return date;
         },
     },
+    totalAmmount: {
+        type: Number,
+        default: 0
+    }
 });
 
 const Habit = mongoose.model("Habit", habitSchema);

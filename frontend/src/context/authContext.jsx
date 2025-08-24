@@ -15,7 +15,6 @@ const UserContextProvider = ({ children }) => {
 				}
 
 				action.payload.habits = habits
-
 				return {
 					...state,
 					user: action.payload

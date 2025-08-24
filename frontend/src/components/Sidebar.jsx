@@ -27,7 +27,7 @@ const Sidebar = ({ setTab, tab }) => {
     ];
 
     return (
-        <aside className="min-h-screen bg-gray-900 text-white flex flex-col w-56 max-sm:w-fit p-4 border-r border-gray-700 max-sm:p-2">
+        <aside className="h-screen bg-gray-900 text-white flex flex-col w-56 max-sm:w-fit p-4 border-r border-gray-700 max-sm:p-2 sticky top-0">
 
             <h1 className="font-extrabold text-2xl mb-10 flex gap-3 justify-center items-center max-sm:mb-4">
                 <span className="bg-blue-600 p-2 rounded-xl">

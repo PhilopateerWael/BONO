@@ -3,6 +3,14 @@ import User from "../models/User.js";
 import { config } from "dotenv";
 import { OAuth2Client } from "google-auth-library";
 
+function keyForDate(d = new Date()) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+
 config()
 
 const SECRET_KEY = process.env.SECRET;
@@ -26,11 +34,11 @@ export async function getMe(req, res) {
             let atLeastOneHabitDone = false;
             for (let habit of req.user.habits) {
 
-                if (habit?.daysDone[today]?.completed || habit?.daysDone[yesterday]?.completed) {
+                if (habit?.daysDone[keyForDate(today)]?.completed || habit?.daysDone[keyForDate(yesterday)]?.completed) {
                     atLeastOneHabitDone = true;
                 }
 
-                if (!habit?.daysDone[yesterday]?.completed && !habit?.daysDone[today]?.completed) {
+                if (!habit?.daysDone[keyForDate(yesterday)]?.completed && !habit?.daysDone[keyForDate(today)]?.completed) {
                     habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
                     habit.currentStreak = 0;
                 }
@@ -48,7 +56,7 @@ export async function getMe(req, res) {
                 req.user.currentStreak = 0;
                 req.user.doneSomethingToday = false;
             }
-            
+
             req.user.lastCheck = today;
             await req.user.save();
         }
