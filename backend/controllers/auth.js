@@ -2,14 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { config } from "dotenv";
 import { OAuth2Client } from "google-auth-library";
-
-function keyForDate(d = new Date()) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-}
-
+import { keyForDate } from "../Utils/All.js";
 
 config()
 
@@ -20,7 +13,7 @@ const client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_SECRET,
     'postmessage',
 );
-
+// Final
 export async function getMe(req, res) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -32,32 +25,25 @@ export async function getMe(req, res) {
     if (req.user) {
         if (today.getTime() != req.user.lastCheck.getTime()) {
             let atLeastOneHabitDone = false;
-            for (let habit of req.user.habits) {
 
+            for (let habit of req.user.habits) {
                 if (habit?.daysDone[keyForDate(today)]?.completed || habit?.daysDone[keyForDate(yesterday)]?.completed) {
                     atLeastOneHabitDone = true;
-                }
-
-                if (!habit?.daysDone[keyForDate(yesterday)]?.completed && !habit?.daysDone[keyForDate(today)]?.completed) {
+                }else{
                     habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
                     habit.currentStreak = 0;
-                }
-
-                let notToday = today.getTime() != habit.today.getTime();
-
-                if (notToday) {
-                    habit.today = today;
-                    await habit.save();
+                    await habit.save()
                 }
             }
 
             if (!atLeastOneHabitDone) {
                 req.user.longestStreak = Math.max(req.user.longestStreak, req.user.currentStreak);
                 req.user.currentStreak = 0;
-                req.user.doneSomethingToday = false;
             }
 
+            req.user.doneSomethingToday = false
             req.user.lastCheck = today;
+
             await req.user.save();
         }
 
@@ -65,6 +51,8 @@ export async function getMe(req, res) {
     }
     return res.status(401).json({ message: "Unauthorized" });
 }
+
+// Final
 
 export async function Google(req, res) {
     const { code } = req.body;
@@ -126,6 +114,8 @@ export async function Google(req, res) {
     }
 }
 
+// Final
+
 export async function Logout(req, res) {
     const user = req.user;
 
@@ -141,4 +131,3 @@ export async function Logout(req, res) {
 
     return res.status(200).json({ message: "Logout successful" });
 }
-

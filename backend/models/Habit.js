@@ -28,15 +28,6 @@ const habitSchema = new mongoose.Schema({
         required: true,
         default: 0
     },
-    today: {
-        type: Date,
-        required: true,
-        default: () => {
-            const date = new Date();
-            date.setHours(0, 0, 0, 0);
-            return date;
-        },
-    },
     currentStreak: {
         type: Number,
         required: true,
@@ -55,18 +46,13 @@ const habitSchema = new mongoose.Schema({
         type: Object,
         default: {}
     },
-    oldestDay: {
-        type: Date,
-        required: true,
-        default: () => {
-            const date = new Date();
-            date.setHours(0, 0, 0, 0);
-            return date;
-        },
-    },
     totalAmmount: {
         type: Number,
         default: 0
+    },
+    hours: {
+        type: [Number],
+        default: () => Array(24).fill(0)
     }
 });
 

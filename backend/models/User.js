@@ -34,10 +34,6 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Habit"
     }],
-    records: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Record"
-    }],
     doneSomethingToday: {
         type: Boolean,
         required: true,

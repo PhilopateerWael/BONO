@@ -1,118 +1,144 @@
 import Habit from "../models/Habit.js";
-import Record from "../models/Record.js";
+import { isValidObjectId } from "mongoose";
+import { keyForDate, iHateYou, validateString, validateNumber, validateHabitType } from "../Utils/All.js";
 
-function keyForDate(d = new Date()) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-}
-
+// Final (i hope)
 async function createHabit(req, res) {
     try {
         let { name, description, goal, unit, habitType, weeklyGoal } = req.body;
 
-        if (!goal) goal = 1
-        if (!unit) unit = "X"
+        name = validateString(name);
+        description = validateString(description)
+        goal = validateNumber(goal)
+        unit = validateString(unit)
+        habitType = validateHabitType(habitType)
+        weeklyGoal = validateNumber(weeklyGoal)
 
-        const habit = await Habit.create({ name, description, goal, unit, habitType, weeklyGoal });
+        if (!goal) goal = 1;
+        if (!unit) unit = "X";
+
+        const habit = await Habit.create({ name, description, goal: habitType == "check" ? 1 : goal, unit, habitType, weeklyGoal });
         req.user.habits.push(habit._id);
 
         await req.user.save();
 
         res.status(201).json(habit);
-    } catch {
-        res.status(500).end("SERVER ERROR")
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
     }
 }
 
 async function doHabit(req, res) {
-    let { habitId, ammount } = req.body;
-    if (!ammount) ammount = 1;
+    try {
+        let { habitId, ammount, hour } = req.body;
 
-    const habit = req.user.habits.find(habit => habit._id.toString() === habitId);
+        if (!isValidObjectId(habitId)) return iHateYou(res);
 
-    if (!habit) {
-        return res.status(404).json({ message: "Habit not found" });
-    }
+        hour = validateNumber(hour)
+        ammount = validateNumber(ammount)
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        if (hour > 23 || hour < 0) hour = 0
+        if (ammount <= 0) ammount = 1
 
-    if (!habit.daysDone[keyForDate(today)]) {
-        habit.daysDone[keyForDate(today)] = {
-            ammount: 0,
-            currentGoal: habit.goal,
-            completed: false
+        const habit = req.user.habits.find(habit => habit._id.toString() === habitId);
+
+        if (!habit) {
+            return res.status(404).json({ message: "Habit not found" });
         }
-    }
 
-    const todaysLog = habit.daysDone[keyForDate(today)];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const record = await Record.create({
-        date: new Date(),
-        ammount,
-        habitId
-    });
-
-    todaysLog.ammount += ammount;
-    habit.totalAmmount += ammount;
-    
-    if (todaysLog.ammount >= todaysLog.currentGoal && !todaysLog.completed) {
-        todaysLog.completed = true;
-        habit.currentStreak++;
-        habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
-        habit.totalCompletions++;
-
-        if (!req.user.doneSomethingToday) {
-            req.user.currentStreak++;
-            req.user.doneSomethingToday = true;
+        if (!habit.daysDone[keyForDate(today)]) {
+            habit.daysDone[keyForDate(today)] = {
+                ammount: 0,
+                currentGoal: habit.goal,
+                completed: false
+            }
         }
-    }
-    
-    habit.daysDone[keyForDate(today)] = todaysLog
 
-    req.user.records.push(record._id);
-    await habit.save();
-    await req.user.save();
+        const todaysLog = habit.daysDone[keyForDate(today)];
 
-    res.status(200).json(habit);
-}
+        todaysLog.ammount += ammount;
+        habit.totalAmmount += ammount;
+        habit.hours[hour] += ammount;
 
-// edits for the future and deletes correctly !
-async function editHabit(req, res) {
-    const { habitId } = req.params;
-    const { name, description, goal, unit, weeklyGoal, isDelete } = req.body;
-    const habit = req.user.habits.find(habit => habit._id.toString() === habitId);
+        if (todaysLog.ammount >= todaysLog.currentGoal && !todaysLog.completed) {
+            todaysLog.completed = true;
+            habit.currentStreak++;
+            habit.longestStreak = Math.max(habit.longestStreak, habit.currentStreak);
+            habit.totalCompletions++;
 
-    if (!habit) {
-        return res.status(404).json({ message: "Habit not found" });
-    }
+            if (!req.user.doneSomethingToday) {
+                req.user.currentStreak++;
+                req.user.longestStreak = Math.max(req.user.longestStreak , req.user.currentStreak);
+                req.user.doneSomethingToday = true;
+            }
+        }
 
-    if (isDelete) {
-        await Habit.deleteOne({ _id: habitId });
-        await Record.deleteMany({ habitId })
+        habit.daysDone[keyForDate(today)] = todaysLog;
 
-        req.user.habits = req.user.habits.filter(id => id.toString() !== habitId);
+        // objects dont save automatically becuase nested mutations ... idk ... dont fire events ? for some reason.
+        habit.markModified("daysDone");
+        habit.markModified("hours");
+
+        await habit.save();
         await req.user.save();
 
-        return res.status(200).end();
+        res.status(200).json(habit);
+    } catch (error) {
+        console.error('Error in doHabit:', error);
+        res.status(500).json({ message: "Internal server error" });
     }
+}
 
-    habit.name = name;
-    habit.description = description;
-    habit.goal = goal;
-    habit.unit = unit;
-    habit.weeklyGoal = weeklyGoal;
+// edits for the future and deletes correctly ! (Final)
+async function editHabit(req, res) {
+    try {
+        const { habitId } = req.params;
+        if (!isValidObjectId(habitId)) return iHateYou(res);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        let { name, description, goal, unit, weeklyGoal, isDelete } = req.body;
 
-    if (habit.daysDone[keyForDate(today)]) {
-        habit.daysDone[keyForDate(today)].currentGoal = goal
+        name = validateString(name);
+        description = validateString(description)
+        goal = validateNumber(goal)
+        unit = validateString(unit)
+        weeklyGoal = validateNumber(weeklyGoal)
+
+        const habit = req.user.habits.find(habit => habit._id.toString() === habitId);
+
+        if (!habit) {
+            return res.status(404).json({ message: "Habit not found" });
+        }
+
+        if (isDelete) {
+            await Habit.deleteOne({ _id: habitId });
+
+            req.user.habits = req.user.habits.filter(id => id.toString() !== habitId);
+            await req.user.save();
+
+            return res.status(200).json({ message: "Habit deleted successfully" });
+        }
+
+        habit.name = name;
+        habit.description = description;
+        habit.goal = goal;
+        habit.unit = unit;
+        habit.weeklyGoal = weeklyGoal;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (habit.daysDone[keyForDate(today)]?.currentGoal) {
+            habit.daysDone[keyForDate(today)].currentGoal = goal;
+        }
+
+        await habit.save();
+        res.status(200).json({ habit, message: "Habit updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
     }
-
-    await habit.save();
 }
 
 export { createHabit, doHabit, editHabit };

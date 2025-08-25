@@ -14,7 +14,7 @@ export async function authenticationMiddleware(req, res, next) {
     try {
         const token = req?.cookies?.token;
         const decoded = jwt.verify(token, SECRET_KEY);
-        const user = await User.findById(decoded.userId).populate("habits").populate("records");
+        const user = await User.findById(decoded.userId).populate("habits");
 
         if (!user) return res.status(401).json({ message: "Unauthorized" });
 
