@@ -1,8 +1,8 @@
 import { useState } from "react"
 import Sidebar from "../components/Sidebar.jsx"
-import Habits from "../components/Habits.jsx"
-import Stats from "../components/Stats.jsx"
-import Settings from "../components/Settings.jsx"
+import Habits from "./Habits.jsx"
+import Stats from "./Stats.jsx"
+import Settings from "./Settings.jsx"
 
 const Main = () => {
     const [tab, setTab] = useState("habits")
