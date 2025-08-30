@@ -28,14 +28,14 @@ const CreateHabitForm = ({ setForm }) => {
     }
 
     return (
-        <div className="bg-black/60 fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm p-4">
-            <div className="bg-gray-900 w-full max-w-lg rounded-2xl shadow-xl border border-gray-700 flex flex-col max-h-[90vh] overflow-y-auto">
+        <div className="bg-black/60 z-[99] fixed inset-0 flex justify-center items-center backdrop-blur-sm p-4">
+            <div className="glass w-full max-w-lg rounded-2xl shadow-xl border border-white/10 flex flex-col max-h[90vh] max-h-[90vh] overflow-y-auto">
 
-                <div className="p-4 flex justify-between items-center border-b border-gray-700 sticky top-0 bg-gray-900 z-10">
+                <div className="p-4 flex justify-between items-center border-b border-white/10 sticky top-0 bg-transparent z-10">
                     <h1 className="text-lg sm:text-xl font-semibold text-white">Create Habit</h1>
                     <button
                         onClick={() => setForm(false)}
-                        className="cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full p-2 text-gray-300 hover:text-white transition"
+                        className="cursor-pointer bg-white/10 hover:bg-white/15 rounded-full p-2 text-gray-300 hover:text-white border border-white/10 transition"
                     >
                         <X size={18} />
                     </button>
@@ -50,7 +50,7 @@ const CreateHabitForm = ({ setForm }) => {
                             name="name"
                             id="name"
                             placeholder="Enter habit name"
-                            className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                            className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:border-white/30 focus:outline-none text-sm sm:text-base"
                         />
                     </div>
 
@@ -61,7 +61,7 @@ const CreateHabitForm = ({ setForm }) => {
                             name="description"
                             id="description"
                             placeholder="Enter habit description (Optional)"
-                            className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                            className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:border-white/30 focus:outline-none text-sm sm:text-base"
                         />
                     </div>
 
@@ -71,7 +71,7 @@ const CreateHabitForm = ({ setForm }) => {
                             name="type"
                             id="type"
                             onChange={(e) => setType(e.target.value)}
-                            className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                            className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white focus:border-white/30 focus:outline-none text-sm sm:text-base"
                         >
                             <option value="check">Check and go (ex : shower)</option>
                             <option value="count">Count based (ex : read X pages)</option>
@@ -89,7 +89,7 @@ const CreateHabitForm = ({ setForm }) => {
                                 name="dailyGoal"
                                 id="dailyGoal"
                                 placeholder={`I want to do this ${type === "time" ? "for X minutes" : "X (units)"} daily`}
-                                className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:border-white/30 focus:outline-none text-sm sm:text-base"
                             />
                         </div>
                     )}
@@ -103,7 +103,7 @@ const CreateHabitForm = ({ setForm }) => {
                                 name="unit"
                                 id="unit"
                                 placeholder="ex : Pages , miles , etc..."
-                                className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                                className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:border-white/30 focus:outline-none text-sm sm:text-base"
                             />
                         </div>
                     )}
@@ -118,13 +118,13 @@ const CreateHabitForm = ({ setForm }) => {
                             required
                             id="weeklyGoal"
                             placeholder="I want to complete this habit X days a week"
-                            className="bg-gray-800 border border-gray-700 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+                            className="bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2 text-white placeholder-gray-500 focus:border-white/30 focus:outline-none text-sm sm:text-base"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="cursor-pointer mt-2 sm:mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition text-sm sm:text-base"
+                        className="cursor-pointer mt-2 sm:mt-4 bg-gradient-to-r from-indigo-600 to-cyan-500 hover:opacity-90 text-white font-semibold py-2 px-4 rounded-xl shadow-[0_10px_30px_rgba(79,70,229,0.25)] transition text-sm sm:text-base"
                     >
                         Create Habit
                     </button>

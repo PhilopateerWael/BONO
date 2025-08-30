@@ -1,52 +1,46 @@
-import { LayoutDashboard, ChartColumnIncreasing, Settings, Star } from "lucide-react";
+import { LayoutDashboard, ChartColumnIncreasing, Settings, Star, BarChart3 } from "lucide-react";
 
 const Sidebar = ({ setTab, tab }) => {
     const Tab = ({ name, icon }) => {
-        let selected = name === tab;
+        const selected = name === tab;
         return (
             <button
                 onClick={() => setTab(name)}
                 className={
-                    "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-300 w-full " +
+                    "group flex flex-col items-center gap-1 px-3 py-2 sm:px-4 sm:py-3 rounded-2xl transition-all duration-300 w-full " +
                     (selected
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "text-gray-300 hover:bg-blue-500/30 hover:text-white")
+                        ? "text-white bg-gradient-to-b from-indigo-500/40 via-indigo-500/20 to-transparent neon-ring shadow-[0_8px_24px_rgba(79,70,229,0.35)]"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white")
                 }
                 title={name}
             >
-                <span className="p-1.5 sm:p-2 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <span className={(selected ? "text-white " : "text-gray-300 ") + "p-1.5 rounded-lg bg-white/10 flex items-center justify-center border border-white/10 transition-colors"}>
                     {icon}
                 </span>
-                <p className="capitalize font-medium max-sm:hidden text-sm sm:text-base">{name}</p>
+                <p className="capitalize font-medium text-[11px] sm:text-xs tracking-wide">
+                    {name}
+                </p>
             </button>
         );
     };
 
+
     const tabs = [
-        { name: "habits", icon: <LayoutDashboard size={20} /> },
-        { name: "statistics", icon: <ChartColumnIncreasing size={20} /> },
+        { name: "habits", icon: <LayoutDashboard size={18} /> },
+        { name: "statistics", icon: <ChartColumnIncreasing size={18} /> },
     ];
 
     return (
-        <aside className="h-screen bg-gray-900 text-white flex flex-col w-56 sm:w-64 md:w-56 lg:w-64 max-sm:w-16 p-4 border-r border-gray-700 max-sm:p-2 sticky top-0 shrink-0">
-
-            <h1 className="font-extrabold text-xl sm:text-2xl mb-6 sm:mb-10 flex gap-2 sm:gap-3 justify-center items-center">
-                <span className="bg-blue-600 p-2 rounded-xl">
-                    <Star size={20} className="sm:w-[22px] sm:h-[22px]" />
-                </span>
-                <span className="max-sm:hidden">BONO</span>
-            </h1>
-
-            <nav className="flex flex-col gap-2">
-                {tabs.map((x, i) => (
-                    <Tab key={i} name={x.name} icon={x.icon} />
-                ))}
-            </nav>
-
-            <div className="mt-auto pt-4 sm:pt-6 border-t border-gray-700">
-                <Tab name={"settings"} icon={<Settings size={20} />} />
+        <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-white/10 z-50">
+            <div className="mx-auto max-w-3xl">
+                <div className="flex justify-around items-center p-2 sm:p-3 gap-1">
+                    {tabs.map((x, i) => (
+                        <Tab key={i} name={x.name} icon={x.icon} />
+                    ))}
+                    <Tab name={"settings"} icon={<Settings size={18} />} />
+                </div>
             </div>
-        </aside>
+        </nav>
     );
 };
 

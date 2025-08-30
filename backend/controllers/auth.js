@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { config } from "dotenv";
 import { OAuth2Client } from "google-auth-library";
-import { keyForDate } from "../Utils/All.js";
+import { keyForDate, decryptString } from "../Utils/All.js";
 
 config()
 
@@ -47,7 +47,22 @@ export async function getMe(req, res) {
             await req.user.save();
         }
 
-        return res.status(200).json(req.user);
+        // Decrypt habit fields before sending
+        const userObj = req.user.toObject();
+        if (Array.isArray(userObj.habits)) {
+            userObj.habits = userObj.habits.map(h => {
+                if (!h) return h;
+                const obj = typeof h.toObject === 'function' ? h.toObject() : h;
+                if (obj && typeof obj === 'object') {
+                    obj.name = decryptString(obj.name);
+                    obj.description = decryptString(obj.description);
+                    obj.unit = decryptString(obj.unit);
+                }
+                return obj;
+            });
+        }
+
+        return res.status(200).json(userObj);
     }
     return res.status(401).json({ message: "Unauthorized" });
 }
@@ -89,7 +104,21 @@ export async function Google(req, res) {
                 secure: true,
             });
 
-            return res.json(user.toObject())
+            const userObj = user.toObject();
+            if (Array.isArray(userObj.habits)) {
+                userObj.habits = userObj.habits.map(h => {
+                    if (!h) return h;
+                    const obj = typeof h.toObject === 'function' ? h.toObject() : h;
+                    if (obj && typeof obj === 'object') {
+                        obj.name = decryptString(obj.name);
+                        obj.description = decryptString(obj.description);
+                        obj.unit = decryptString(obj.unit);
+                    }
+                    return obj;
+                });
+            }
+
+            return res.json(userObj)
         }
 
         user = new User({
@@ -108,7 +137,9 @@ export async function Google(req, res) {
             secure: true,
         });
 
-        return res.json(user.toObject());
+        const newUserObj = user.toObject();
+        // No habits on first login, but keep consistent structure
+        return res.json(newUserObj);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }

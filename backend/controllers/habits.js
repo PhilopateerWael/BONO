@@ -1,6 +1,6 @@
 import Habit from "../models/Habit.js";
 import { isValidObjectId } from "mongoose";
-import { keyForDate, iHateYou, validateString, validateNumber, validateHabitType } from "../Utils/All.js";
+import { keyForDate, iHateYou, validateString, validateNumber, validateHabitType, encryptString, decryptString } from "../Utils/All.js";
 
 // Final (i hope)
 async function createHabit(req, res) {
@@ -17,12 +17,18 @@ async function createHabit(req, res) {
         if (!goal) goal = 1;
         if (!unit) unit = "X";
 
-        const habit = await Habit.create({ name, description, goal: habitType == "check" ? 1 : goal, unit, habitType, weeklyGoal });
+        const habit = await Habit.create({ name: encryptString(name), description: encryptString(description), goal: habitType == "check" ? 1 : goal, unit : habitType == "check" ? encryptString("X") : encryptString(unit), habitType, weeklyGoal });
         req.user.habits.push(habit._id);
 
         await req.user.save();
 
-        res.status(201).json(habit);
+        // decrypt for response
+        const obj = habit.toObject()
+        obj.name = decryptString(obj.name)
+        obj.description = decryptString(obj.description)
+        obj.unit = decryptString(obj.unit)
+
+        res.status(201).json(obj);
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -85,7 +91,13 @@ async function doHabit(req, res) {
         await habit.save();
         await req.user.save();
 
-        res.status(200).json(habit);
+        // decrypt for response
+        const obj = habit.toObject()
+        obj.name = decryptString(obj.name)
+        obj.description = decryptString(obj.description)
+        obj.unit = decryptString(obj.unit)
+
+        res.status(200).json(obj);
     } catch (error) {
         console.error('Error in doHabit:', error);
         res.status(500).json({ message: "Internal server error" });
@@ -121,10 +133,10 @@ async function editHabit(req, res) {
             return res.status(200).json({ message: "Habit deleted successfully" });
         }
 
-        habit.name = name;
-        habit.description = description;
+        habit.name = encryptString(name);
+        habit.description = encryptString(description);
         habit.goal = goal;
-        habit.unit = unit;
+        habit.unit = encryptString(unit);
         habit.weeklyGoal = weeklyGoal;
 
         const today = new Date();
@@ -135,7 +147,13 @@ async function editHabit(req, res) {
         }
 
         await habit.save();
-        res.status(200).json({ habit, message: "Habit updated successfully" });
+
+        const obj = habit.toObject()
+        obj.name = decryptString(obj.name)
+        obj.description = decryptString(obj.description)
+        obj.unit = decryptString(obj.unit)
+
+        res.status(200).json({ habit: obj, message: "Habit updated successfully" });
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }

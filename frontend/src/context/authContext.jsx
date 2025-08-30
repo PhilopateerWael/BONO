@@ -36,6 +36,17 @@ const UserContextProvider = ({ children }) => {
 					}
 				}
 			}
+			case "DELETE_HABIT": {
+				const newHabits = { ...state.user.habits };
+				delete newHabits[action.payload];
+				return {
+					...state,
+					user: {
+						...state.user,
+						habits: newHabits
+					}
+				}
+			}
 			default:
 				return state
 		}

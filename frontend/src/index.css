@@ -2,6 +2,10 @@
 @import "@fontsource/geist-sans";
 @import "@fontsource/geist-mono";
 
+html, body, #root {
+  height: 100%;
+}
+
 body {
   font-family: 'Geist Sans', sans-serif;
 }
@@ -9,11 +13,11 @@ body {
 /* removing ugly buttons in input type number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none; /* Removes the default appearance */
-  margin: 0; /* Removes any default margin */
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* For Mozilla Firefox */
 input[type="number"] {
-  -moz-appearance: textfield; /* Resets the appearance to a standard text field */
+  -moz-appearance: textfield;
 }
